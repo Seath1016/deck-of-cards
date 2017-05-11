@@ -59,7 +59,7 @@ if game_info_file.exists():
     print("I've detected an existing deck from a previous game. Continuing with deck ID {}".format(deck_id))
 else:
     # No save data, create new game
-    deck_id, running_list = new_game()
+    deck_id, running_list = new_game(http)
     print("No game info detected. Starting a new game with deck ID {}".format(deck_id))
 
 # Request user input via while loop and options
@@ -73,7 +73,7 @@ while choice != 'q':
     choice = input("\nWhat would you like to do? ")
 
     if choice == '1':
-        deck_id, running_list = new_game()
+        deck_id, running_list = new_game(http)
         save_game_info(deck_id, running_list)
         print('The deck has been shuffled. Your new deck ID is: {}'.format(deck_id))
     elif choice == '2':
@@ -88,7 +88,7 @@ while choice != 'q':
         if card['remaining'] == 0:
             print('IM OUT OF CARDS!! Game over.')
             # if out of cards go ahead and instantiate a new game
-            deck_id, running_list = new_game()
+            deck_id, running_list = new_game(http)
             save_game_info(deck_id, running_list)
             choice = 'q'
     elif choice == 'q':
