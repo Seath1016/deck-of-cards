@@ -4,8 +4,6 @@ from collections import defaultdict
 from pathlib import Path
 
 http = urllib3.PoolManager()
-# defaultdict lets us easily iterate the value (count) in running_list
-#running_list = defaultdict(int)
 game_info_file = Path('game_info.json')
 correct_order = {'ACE': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'JACK': 11, 'QUEEN': 12, 'KING': 13}
 choice = ''
@@ -16,8 +14,9 @@ def shuffle_cards(http):
 
     return data['deck_id']
 
-def new_game():
+def new_game(http):
     deck_id = shuffle_cards(http)
+    #defaultdict lets us easily iterate the value (count) in running_list
     running_list = defaultdict(int)
 
     return deck_id, running_list
@@ -59,6 +58,7 @@ if game_info_file.exists():
     deck_id, running_list = read_game_info()
     print("I've detected an existing deck from a previous game. Continuing with deck ID {}".format(deck_id))
 else:
+    # No save data, create new game
     deck_id, running_list = new_game()
     print("No game info detected. Starting a new game with deck ID {}".format(deck_id))
 
@@ -80,19 +80,23 @@ while choice != 'q':
         card = draw_card(http, deck_id)
         card_value = card['cards'][0]['value']
         print('Drew a card! The value is {}'.format(card_value))
+        # this operation is why we needed defaultdict
         running_list[card_value] += 1
         print('\nTotals: {}'.format(dict(running_list)))
         print('\nCards remaining: {}'.format(card['remaining']))
         # if we use up all 52 cards, complain, re-shuffle, and end the game
         if card['remaining'] == 0:
             print('IM OUT OF CARDS!! Game over.')
+            # if out of cards go ahead and instantiate a new game
             deck_id, running_list = new_game()
             save_game_info(deck_id, running_list)
             choice = 'q'
     elif choice == 'q':
+        # quit game but save info
         save_game_info(deck_id, running_list)
         print('\nSmell ya later!')
     else:
         print("No comprende. Pls enter a valid option.")
 
+# print the final tally using the correct_order dictionary as a map
 print('Final tally: {}'.format(sort_list(dict(running_list), correct_order)))
